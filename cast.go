@@ -19,8 +19,14 @@ type cast struct {
 	mu     sync.Mutex
 }
 
-func New() Broadcast {
-	return &cast{}
+// New returns a broacast interface from an input channel
+func New(input <-chan []byte) Broadcast {
+	return &cast{
+		input:  input,
+		output: make([]chan<- []byte, 0),
+		end:    make(chan struct{}),
+		add:    make(chan chan []byte),
+	}
 }
 
 func (c *cast) Start() {
