@@ -2,10 +2,10 @@ package cast
 
 import "sync"
 
-// Broadcast implements an interface for a fan out pattern
-// the goal is to have one input source pass data to multiple output sources
-// with each source getting the same data
-type Broadcast interface {
+// Relay implements an interface for a fan out pattern
+// the goal is to have one input source pass data to multiple output recievers
+// with each reciever getting the same data
+type Relay interface {
 	Start()
 	Close()
 	Add(chan []byte)
@@ -20,7 +20,7 @@ type cast struct {
 }
 
 // New returns a broacast interface from an input channel
-func New(input <-chan []byte) Broadcast {
+func New(input <-chan []byte) Relay {
 	return &cast{
 		input:  input,
 		output: make([]chan<- []byte, 0),
@@ -46,6 +46,7 @@ func (c *cast) Start() {
 				for _, ch := range c.output {
 					close(ch)
 				}
+				return
 			}
 
 		}
