@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// init relay, add channels
-	relay := New(producer)
+	relay := cast.New(producer)
 	for _, ch := range outputs {
 		relay.Add(ch)
 	}
