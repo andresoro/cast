@@ -11,27 +11,25 @@ import "github.com/andresoro/cast"
 
 func main() {
 
-    // our input channel
-    producer := make(chan []byte)
+    // where our values come from
+	producer := make(chan []byte)
 
-    // broadcast struct, run Start() before adding chans
-    cast := cast.New(producer)
-    cast.Start()
+	// output channels
+	outputs := make([]chan []byte, 0)
+	for i := 0; i < 5; i++ {
+		outputs = append(outputs, make(chan []byte, 1))
+	}
 
+	// init relay, add channels
+	relay := New(producer)
+	for _, ch := range outputs {
+		relay.Add(ch)
+	}
+    // start relay, now listening to producer channel
+	relay.Start()
 
-    // output channels
-    chans := make([]chan []byte, 0)
-    for i := 0; i < 5; i++ {
-        // init chan
-        output := make(chan []byte, 1)
-        chans = chans.append(output)
-
-        // add chan to broadcast interface
-        cast.Add(output)
-    }
-
-    // this value is recieved by all channels
-    producer <- []byte("Hello World)
+	// value added to producer will be sent to every output channel
+	producer <- []byte("Hello World")
 
 }
 ```
