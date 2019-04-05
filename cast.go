@@ -12,40 +12,42 @@ type Relay interface {
 }
 
 type cast struct {
-	input  <-chan []byte
-	output []chan<- []byte
-	end    chan struct{}
-	add    chan chan []byte
-	mu     sync.Mutex
+	input   <-chan []byte
+	outputs []chan<- []byte
+	end     chan struct{}
+	add     chan chan []byte
+	running bool
+	mu      sync.Mutex
 }
 
 // New returns a broacast interface from an input channel
 func New(input <-chan []byte) Relay {
 	return &cast{
-		input:  input,
-		output: make([]chan<- []byte, 0),
-		end:    make(chan struct{}),
-		add:    make(chan chan []byte),
+		input:   input,
+		outputs: make([]chan<- []byte, 0),
+		end:     make(chan struct{}),
+		add:     make(chan chan []byte),
 	}
 }
 
 func (c *cast) Start() {
-
+	c.running = true
 	go func() {
 		for {
 			select {
 			// handle incoming data
 			case data := <-c.input:
-				for _, ch := range c.output {
+				for _, ch := range c.outputs {
 					ch <- data
 				}
 			case ch := <-c.add:
-				c.output = append(c.output, ch)
+				c.outputs = append(c.outputs, ch)
 			// handle end signal
 			case <-c.end:
-				for _, ch := range c.output {
+				for _, ch := range c.outputs {
 					close(ch)
 				}
+				c.running = false
 				return
 			}
 
@@ -55,7 +57,12 @@ func (c *cast) Start() {
 }
 
 func (c *cast) Add(ch chan []byte) {
-	c.add <- ch
+	if c.running {
+		c.add <- ch
+	} else {
+		c.outputs = append(c.outputs, ch)
+	}
+
 }
 
 func (c *cast) Close() {
