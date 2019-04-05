@@ -4,7 +4,7 @@ An interface to satisfy a one to many message passing pattern (fan out). This pr
 
 ## Example usage
 
-```
+```golang
 package main
 
 import "github.com/andresoro/cast"
