@@ -11,14 +11,11 @@ func TestOutputs(t *testing.T) {
 
 	// output channels
 	outputs := make([]chan []byte, 0)
-	for i := 0; i < 5; i++ {
-		outputs = append(outputs, make(chan []byte, 1))
-	}
 
 	// init relay, add channels
 	relay := New(producer)
-	for _, ch := range outputs {
-		relay.Add(ch)
+	for i := 0; i < 10; i++ {
+		outputs = append(outputs, relay.New())
 	}
 
 	relay.Start()
@@ -40,25 +37,23 @@ func TestAdding(t *testing.T) {
 
 	producer := make(chan []byte)
 
-	output1 := make(chan []byte, 1)
-	output2 := make(chan []byte, 1)
-
 	relay := New(producer)
 
-	relay.Add(output1)
-	relay.Start()
-	relay.Add(output2)
+	output1 := relay.New()
 
-	producer <- []byte("Testing")
+	relay.Start()
+
+	output2 := relay.New()
+
+	producer <- []byte("Value")
 
 	val1 := <-output1
-	if string(val1) != "Testing" {
-		t.Error("Output channel added before start not recieving value")
+	if string(val1) != "Value" {
+		t.Error("Error Adding channel 1")
 	}
 
 	val2 := <-output2
-	if string(val2) != "Testing" {
-		t.Error("Output channel after Start not recieving value")
+	if string(val2) != "Value" {
+		t.Error("Error Adding channel 2")
 	}
-
 }
