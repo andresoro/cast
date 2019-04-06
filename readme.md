@@ -12,23 +12,25 @@ import "github.com/andresoro/cast"
 func main() {
 
     // where our values come from
-	producer := make(chan []byte)
+    producer := make(chan []byte)
+    
+    // init relay, add channels
+	relay := cast.New(producer)
 
 	// output channels
 	outputs := make([]chan []byte, 0)
 	for i := 0; i < 5; i++ {
-		outputs = append(outputs, make(chan []byte, 1))
+        // return a client channel 
+        ch := relay.New()
+        outputs = append(outputs, ch)
 	}
 
-	// init relay, add channels
-	relay := cast.New(producer)
-	for _, ch := range outputs {
-		relay.Add(ch)
-	}
+	
+
     // start relay, now listening to producer channel
 	relay.Start()
 
-	// value added to producer will be sent to every output channel
+	// value sent to producer will be sent to every output channel
 	producer <- []byte("Hello World")
 
 }
