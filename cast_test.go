@@ -82,6 +82,24 @@ func TestBlockingWrite(t *testing.T) {
 
 }
 
+// Test should send a newly added channel the last data
+func TestLastSent(t *testing.T) {
+	producer := make(chan []byte)
+
+	relay := New(producer)
+
+	relay.Start()
+
+	producer <- []byte("Test data")
+
+	output := relay.New()
+
+	val := <-output
+	if string(val) != "Test data" {
+		t.Error("Output channel not receiving last sent data")
+	}
+}
+
 func TestClose(t *testing.T) {
 	producer := make(chan []byte)
 
@@ -101,12 +119,11 @@ func TestClose(t *testing.T) {
 	<-output4
 }
 
-// Test produces messages until timeout, passes when 10 messages are received by either the fast or slow client.
-// Producer write messages at 2 Hz
-// Client 1 Received at 1 Hz
-// Client 2 Receives at 4 Hz
-// Note, there will be a lag in receiver and producer during startup so num sent should be higher than the 10 received to kill test.
-// Client 1 should have about half the the messages of Client 2
+// Tests slow and fast receivers
+// Producer will write data at 2hz
+// Slow receiver reads at 1hz
+// Fast receiver reads at 4hz
+// Test passes when 10 messages are received by either channel
 func TestSlowReceiverCase(t *testing.T) {
 
 	producer := make(chan []byte)
@@ -128,7 +145,7 @@ func TestSlowReceiverCase(t *testing.T) {
 	go func() {
 		for {
 			time.Sleep(500 * time.Millisecond)
-			t.Log("Message sent")
+			t.Logf("Message %d sent", messagesSent)
 
 			producer <- []byte(fmt.Sprintf("Testing %d", messagesSent))
 			messagesSent++

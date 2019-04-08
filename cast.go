@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const timeout = time.Millisecond * 5
+const timeout = time.Millisecond * 10
 
 // Relay implements an interface for a fan out pattern
 // the goal is to have one input source pass data to multiple output recievers
@@ -22,6 +22,7 @@ type cast struct {
 	end     chan struct{}
 	add     chan chan []byte
 	running bool
+	last    []byte
 	mu      sync.Mutex
 }
 
@@ -42,9 +43,11 @@ func (c *cast) Start() {
 			select {
 			// handle incoming data
 			case data := <-c.input:
+				c.last = data
 				go c.broadcast(data)
 			case ch := <-c.add:
 				c.outputs = append(c.outputs, ch)
+				go send(ch, c.last)
 			// handle end signal
 			case <-c.end:
 				for _, ch := range c.outputs {
