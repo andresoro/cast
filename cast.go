@@ -1,6 +1,11 @@
 package cast
 
-import "sync"
+import (
+	"sync"
+	"time"
+)
+
+const timeout = time.Millisecond * 5
 
 // Relay implements an interface for a fan out pattern
 // the goal is to have one input source pass data to multiple output recievers
@@ -37,20 +42,20 @@ func (c *cast) Start() {
 			select {
 			// handle incoming data
 			case data := <-c.input:
-				for _, ch := range c.outputs {
-					ch <- data
-				}
+				go c.broadcast(data)
 			case ch := <-c.add:
 				c.outputs = append(c.outputs, ch)
 			// handle end signal
 			case <-c.end:
 				for _, ch := range c.outputs {
+
 					close(ch)
 				}
 				c.running = false
 				return
+			default:
+				continue
 			}
-
 		}
 	}()
 
@@ -73,4 +78,27 @@ func (c *cast) New() chan []byte {
 
 func (c *cast) Close() {
 	c.end <- struct{}{}
+}
+
+func (c *cast) broadcast(data []byte) {
+	for _, ch := range c.outputs {
+		go send(ch, data)
+	}
+}
+
+// send data to reciever channels, timeout if message not recieved
+func send(ch chan<- []byte, data []byte) {
+	messageSent := make(chan bool, 0)
+
+	go func(done chan bool) {
+		ch <- data
+		close(messageSent)
+	}(messageSent)
+
+	select {
+	case <-messageSent:
+		break
+	case <-time.After(timeout):
+		break
+	}
 }
