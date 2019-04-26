@@ -14,7 +14,7 @@ func main() {
     // where our values come from
     producer := make(chan []byte)
     
-    // init relay, add channels
+   	// init relay, add channels
 	relay := cast.New(producer)
 
 	// output channels
@@ -27,7 +27,7 @@ func main() {
 
 	
 
-    // start relay, now listening to producer channel
+   	// start relay, now listening to producer channel
 	relay.Start()
 
 	// value sent to producer will be sent to every output channel
