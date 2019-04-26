@@ -20,9 +20,9 @@ func main() {
 	// output channels
 	outputs := make([]chan []byte, 0)
 	for i := 0; i < 5; i++ {
-        // return a client channel 
-        ch := relay.New()
-        outputs = append(outputs, ch)
+        	// return a client channel 
+        	ch := relay.New()
+        	outputs = append(outputs, ch)
 	}
 
 	
