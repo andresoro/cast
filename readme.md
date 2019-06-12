@@ -14,20 +14,20 @@ func main() {
     // where our values come from
     producer := make(chan []byte)
     
-    // init relay, add channels
+   	// init relay, add channels
 	relay := cast.New(producer)
 
 	// output channels
 	outputs := make([]chan []byte, 0)
 	for i := 0; i < 5; i++ {
-        // return a client channel 
-        ch := relay.New()
-        outputs = append(outputs, ch)
+        	// return a client channel 
+        	ch := relay.New()
+        	outputs = append(outputs, ch)
 	}
 
 	
 
-    // start relay, now listening to producer channel
+   	// start relay, now listening to producer channel
 	relay.Start()
 
 	// value sent to producer will be sent to every output channel
