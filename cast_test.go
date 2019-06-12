@@ -98,6 +98,13 @@ func TestLastSent(t *testing.T) {
 	if string(val) != "Test data" {
 		t.Error("Output channel not receiving last sent data")
 	}
+
+	output2 := relay.New()
+
+	val = <-output2
+	if string(val) != "Test data" {
+		t.Error("Second output channel not receiving last sent data")
+	}
 }
 
 func TestClose(t *testing.T) {
