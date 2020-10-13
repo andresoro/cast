@@ -35,8 +35,3 @@ func main() {
 
 }
 ```
-
-
-### Disclaimer
-
-Wrote this up quickly in an effort to avoid writing something like this multiple times for my webserver. Better tests and more features will probably be added later. 
